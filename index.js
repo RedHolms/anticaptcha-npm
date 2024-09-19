@@ -59,38 +59,34 @@ module.exports = {
         if (typeof response.captchaCredits !== "undefined") return response.captchaCredits;
         else return 0;
     },
-    async solveImage(body) {
-        const taskCreateResult = await
-            this.JSONRequest('createTask', {
-                'clientKey' : this.settings.clientKey,
-                'task' : {
-                    type:           'ImageToTextTask',
-                    body:           body,
-                    phrase:         this.settings.phrase,
-                    case:           this.settings.case,
-                    numeric:        this.settings.numeric,
-                    comment:        this.settings.comment,
-                    math:           this.settings.math,
-                    minLength:      this.settings.minLength,
-                    maxLength:      this.settings.maxLength,
-                    languagePool : this.settings.languagePool
-                },
-                'softId' : this.settings.softId
-            });
-        if (taskCreateResult.taskId) {
-            this.settings.taskId = taskCreateResult.taskId;
-            const solution = await this.waitForResult(taskCreateResult.taskId);
-            return solution.text;
-        } else {
+    async solveImage(body, setts) {
+        const taskCreateResult = await this.JSONRequest('createTask', {
+            'clientKey' : this.settings.clientKey,
+            'task' : {
+                type:           'ImageToTextTask',
+                body:           body,
+                phrase:         setts.phrase,
+                case:           setts.case,
+                numeric:        setts.numeric,
+                comment:        setts.comment,
+                math:           setts.math,
+                minLength:      setts.minLength,
+                maxLength:      setts.maxLength,
+                languagePool:   setts.languagePool
+            },
+            'softId' : this.settings.softId
+        });
+
+        if (taskCreateResult.taskId)
+            return taskCreateResult.taskId;
+        else
             throw "ERROR_NO_SLOT_AVAILABLE";
-        }
     },
-    async reportIncorrectImageCaptcha() {
+    async reportIncorrectImageCaptcha(taskId) {
         await this.JSONRequest('reportIncorrectImageCaptcha', {
                 'clientKey' : this.settings.clientKey,
-                'taskId': this.settings.taskId
+                'taskId': taskId
             })
-        return true;
     },
 
     async solveRecaptchaV2Proxyless(websiteURL, websiteKey, isInvisible = false) {
